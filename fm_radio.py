@@ -3,7 +3,7 @@
 # GNU Radio Python Flow Graph
 # Title: FM Radio
 # Author: Brian McLaughlin (bjmclaughlin@gmail.com)
-# Generated: Tue Jan  5 11:41:28 2016
+# Generated: Tue Jan  5 16:04:19 2016
 ##################################################
 
 if __name__ == '__main__':
@@ -20,6 +20,8 @@ from PyQt4 import Qt
 from gnuradio import analog
 from gnuradio import audio
 from gnuradio import blocks
+from gnuradio import digital
+from gnuradio import digital;import cmath
 from gnuradio import eng_notation
 from gnuradio import filter
 from gnuradio import gr
@@ -28,6 +30,7 @@ from gnuradio.eng_option import eng_option
 from gnuradio.filter import firdes
 from gnuradio.qtgui import Range, RangeWidget
 from optparse import OptionParser
+import cmath
 import osmosdr
 import sip
 import sys
@@ -137,6 +140,11 @@ class fm_radio(gr.top_block, Qt.QWidget):
         self.notebook_rds_grid_layout_1 = Qt.QGridLayout()
         self.notebook_rds_layout_1.addLayout(self.notebook_rds_grid_layout_1)
         self.notebook_rds.addTab(self.notebook_rds_widget_1, "RDS Signal")
+        self.notebook_rds_widget_2 = Qt.QWidget()
+        self.notebook_rds_layout_2 = Qt.QBoxLayout(Qt.QBoxLayout.TopToBottom, self.notebook_rds_widget_2)
+        self.notebook_rds_grid_layout_2 = Qt.QGridLayout()
+        self.notebook_rds_layout_2.addLayout(self.notebook_rds_grid_layout_2)
+        self.notebook_rds.addTab(self.notebook_rds_widget_2, "Constellation")
         self.notebook_top_grid_layout_5.addWidget(self.notebook_rds, 0, 0, 1, 1)
         self._fm_station_range = Range(fm_broadcast_low, fm_broadcast_high, fm_broadcast_seperation, 102.7, 200)
         self._fm_station_win = RangeWidget(self._fm_station_range, self.set_fm_station, "FM Station", "counter_slider", float)
@@ -154,6 +162,8 @@ class fm_radio(gr.top_block, Qt.QWidget):
         self.rtlsdr_source_0.set_antenna("", 0)
         self.rtlsdr_source_0.set_bandwidth(0, 0)
           
+        self.root_raised_cosine_filter_0 = filter.fir_filter_ccf(1, firdes.root_raised_cosine(
+        	1, rds_samp_rate, 2375, 1, 100))
         self.rational_resampler_xxx_0_0 = filter.rational_resampler_fff(
                 interpolation=int(audio_rate),
                 decimation=int(baseband_rate),
@@ -166,9 +176,9 @@ class fm_radio(gr.top_block, Qt.QWidget):
                 taps=None,
                 fractional_bw=None,
         )
-        self.qtgui_time_sink_x_1 = qtgui.time_sink_f(
+        self.qtgui_time_sink_x_1 = qtgui.time_sink_c(
         	1024, #size
-        	baseband_rate / 10, #samp_rate
+        	rds_bitrate * 2, #samp_rate
         	"", #name
         	1 #number of inputs
         )
@@ -199,9 +209,12 @@ class fm_radio(gr.top_block, Qt.QWidget):
         alphas = [1.0, 1.0, 1.0, 1.0, 1.0,
                   1.0, 1.0, 1.0, 1.0, 1.0]
         
-        for i in xrange(1):
+        for i in xrange(2*1):
             if len(labels[i]) == 0:
-                self.qtgui_time_sink_x_1.set_line_label(i, "Data {0}".format(i))
+                if(i % 2 == 0):
+                    self.qtgui_time_sink_x_1.set_line_label(i, "Re{{Data {0}}}".format(i/2))
+                else:
+                    self.qtgui_time_sink_x_1.set_line_label(i, "Im{{Data {0}}}".format(i/2))
             else:
                 self.qtgui_time_sink_x_1.set_line_label(i, labels[i])
             self.qtgui_time_sink_x_1.set_line_width(i, widths[i])
@@ -211,7 +224,7 @@ class fm_radio(gr.top_block, Qt.QWidget):
             self.qtgui_time_sink_x_1.set_line_alpha(i, alphas[i])
         
         self._qtgui_time_sink_x_1_win = sip.wrapinstance(self.qtgui_time_sink_x_1.pyqwidget(), Qt.QWidget)
-        self.notebook_rds_grid_layout_1.addWidget(self._qtgui_time_sink_x_1_win, 0, 0, 1, 1)
+        self.notebook_rds_layout_1.addWidget(self._qtgui_time_sink_x_1_win)
         self.qtgui_time_sink_x_0 = qtgui.time_sink_f(
         	1024, #size
         	baseband_rate, #samp_rate
@@ -258,6 +271,47 @@ class fm_radio(gr.top_block, Qt.QWidget):
         
         self._qtgui_time_sink_x_0_win = sip.wrapinstance(self.qtgui_time_sink_x_0.pyqwidget(), Qt.QWidget)
         self.notebook_subcarriers_grid_layout_0.addWidget(self._qtgui_time_sink_x_0_win, 0, 1, 1, 1)
+        self.qtgui_freq_sink_x_1 = qtgui.freq_sink_c(
+        	1024, #size
+        	firdes.WIN_BLACKMAN_hARRIS, #wintype
+        	0, #fc
+        	rds_samp_rate, #bw
+        	"", #name
+        	1 #number of inputs
+        )
+        self.qtgui_freq_sink_x_1.set_update_time(0.10)
+        self.qtgui_freq_sink_x_1.set_y_axis(-140, 10)
+        self.qtgui_freq_sink_x_1.set_trigger_mode(qtgui.TRIG_MODE_FREE, 0.0, 0, "")
+        self.qtgui_freq_sink_x_1.enable_autoscale(False)
+        self.qtgui_freq_sink_x_1.enable_grid(False)
+        self.qtgui_freq_sink_x_1.set_fft_average(1.0)
+        self.qtgui_freq_sink_x_1.enable_control_panel(False)
+        
+        if not True:
+          self.qtgui_freq_sink_x_1.disable_legend()
+        
+        if complex == type(float()):
+          self.qtgui_freq_sink_x_1.set_plot_pos_half(not True)
+        
+        labels = ["", "", "", "", "",
+                  "", "", "", "", ""]
+        widths = [1, 1, 1, 1, 1,
+                  1, 1, 1, 1, 1]
+        colors = ["blue", "red", "green", "black", "cyan",
+                  "magenta", "yellow", "dark red", "dark green", "dark blue"]
+        alphas = [1.0, 1.0, 1.0, 1.0, 1.0,
+                  1.0, 1.0, 1.0, 1.0, 1.0]
+        for i in xrange(1):
+            if len(labels[i]) == 0:
+                self.qtgui_freq_sink_x_1.set_line_label(i, "Data {0}".format(i))
+            else:
+                self.qtgui_freq_sink_x_1.set_line_label(i, labels[i])
+            self.qtgui_freq_sink_x_1.set_line_width(i, widths[i])
+            self.qtgui_freq_sink_x_1.set_line_color(i, colors[i])
+            self.qtgui_freq_sink_x_1.set_line_alpha(i, alphas[i])
+        
+        self._qtgui_freq_sink_x_1_win = sip.wrapinstance(self.qtgui_freq_sink_x_1.pyqwidget(), Qt.QWidget)
+        self.notebook_rds_layout_0.addWidget(self._qtgui_freq_sink_x_1_win)
         self.qtgui_freq_sink_x_0_1_0_0 = qtgui.freq_sink_f(
         	1024, #size
         	firdes.WIN_BLACKMAN_hARRIS, #wintype
@@ -340,47 +394,6 @@ class fm_radio(gr.top_block, Qt.QWidget):
         
         self._qtgui_freq_sink_x_0_1_0_win = sip.wrapinstance(self.qtgui_freq_sink_x_0_1_0.pyqwidget(), Qt.QWidget)
         self.notebook_top_grid_layout_4.addWidget(self._qtgui_freq_sink_x_0_1_0_win, 0, 1, 1, 1)
-        self.qtgui_freq_sink_x_0_1 = qtgui.freq_sink_f(
-        	1024, #size
-        	firdes.WIN_BLACKMAN_hARRIS, #wintype
-        	0, #fc
-        	baseband_rate / 10, #bw
-        	"RF Frequency", #name
-        	1 #number of inputs
-        )
-        self.qtgui_freq_sink_x_0_1.set_update_time(0.10)
-        self.qtgui_freq_sink_x_0_1.set_y_axis(-80, -40)
-        self.qtgui_freq_sink_x_0_1.set_trigger_mode(qtgui.TRIG_MODE_FREE, 0.0, 0, "")
-        self.qtgui_freq_sink_x_0_1.enable_autoscale(False)
-        self.qtgui_freq_sink_x_0_1.enable_grid(False)
-        self.qtgui_freq_sink_x_0_1.set_fft_average(0.1)
-        self.qtgui_freq_sink_x_0_1.enable_control_panel(False)
-        
-        if not True:
-          self.qtgui_freq_sink_x_0_1.disable_legend()
-        
-        if float == type(float()):
-          self.qtgui_freq_sink_x_0_1.set_plot_pos_half(not True)
-        
-        labels = ["", "", "", "", "",
-                  "", "", "", "", ""]
-        widths = [1, 1, 1, 1, 1,
-                  1, 1, 1, 1, 1]
-        colors = ["blue", "red", "green", "black", "cyan",
-                  "magenta", "yellow", "dark red", "dark green", "dark blue"]
-        alphas = [1.0, 1.0, 1.0, 1.0, 1.0,
-                  1.0, 1.0, 1.0, 1.0, 1.0]
-        for i in xrange(1):
-            if len(labels[i]) == 0:
-                self.qtgui_freq_sink_x_0_1.set_line_label(i, "Data {0}".format(i))
-            else:
-                self.qtgui_freq_sink_x_0_1.set_line_label(i, labels[i])
-            self.qtgui_freq_sink_x_0_1.set_line_width(i, widths[i])
-            self.qtgui_freq_sink_x_0_1.set_line_color(i, colors[i])
-            self.qtgui_freq_sink_x_0_1.set_line_alpha(i, alphas[i])
-        
-        self._qtgui_freq_sink_x_0_1_win = sip.wrapinstance(self.qtgui_freq_sink_x_0_1.pyqwidget(), Qt.QWidget)
-        self.notebook_rds_grid_layout_0.addWidget(self._qtgui_freq_sink_x_0_1_win, 0, 0, 1, 1)
         self.qtgui_freq_sink_x_0_0_0 = qtgui.freq_sink_f(
         	1024, #size
         	firdes.WIN_BLACKMAN_hARRIS, #wintype
@@ -504,31 +517,71 @@ class fm_radio(gr.top_block, Qt.QWidget):
         
         self._qtgui_freq_sink_x_0_win = sip.wrapinstance(self.qtgui_freq_sink_x_0.pyqwidget(), Qt.QWidget)
         self.notebook_top_grid_layout_0.addWidget(self._qtgui_freq_sink_x_0_win, 0, 1, 1, 1)
-        self.low_pass_filter_2_0_1 = filter.fir_filter_fff(1, firdes.low_pass(
-        	1, baseband_rate / 10, 2e3, 0.5e3, firdes.WIN_HAMMING, 6.76))
-        self.low_pass_filter_2_0 = filter.fir_filter_fff(10, firdes.low_pass(
-        	1, baseband_rate, 2e3, 0.5e3, firdes.WIN_HAMMING, 6.76))
+        self.qtgui_const_sink_x_0 = qtgui.const_sink_c(
+        	1024, #size
+        	"", #name
+        	1 #number of inputs
+        )
+        self.qtgui_const_sink_x_0.set_update_time(0.10)
+        self.qtgui_const_sink_x_0.set_y_axis(-2, 2)
+        self.qtgui_const_sink_x_0.set_x_axis(-2, 2)
+        self.qtgui_const_sink_x_0.set_trigger_mode(qtgui.TRIG_MODE_FREE, qtgui.TRIG_SLOPE_POS, 0.0, 0, "")
+        self.qtgui_const_sink_x_0.enable_autoscale(False)
+        self.qtgui_const_sink_x_0.enable_grid(False)
+        
+        if not True:
+          self.qtgui_const_sink_x_0.disable_legend()
+        
+        labels = ["", "", "", "", "",
+                  "", "", "", "", ""]
+        widths = [1, 1, 1, 1, 1,
+                  1, 1, 1, 1, 1]
+        colors = ["blue", "red", "red", "red", "red",
+                  "red", "red", "red", "red", "red"]
+        styles = [0, 0, 0, 0, 0,
+                  0, 0, 0, 0, 0]
+        markers = [0, 0, 0, 0, 0,
+                   0, 0, 0, 0, 0]
+        alphas = [1.0, 1.0, 1.0, 1.0, 1.0,
+                  1.0, 1.0, 1.0, 1.0, 1.0]
+        for i in xrange(1):
+            if len(labels[i]) == 0:
+                self.qtgui_const_sink_x_0.set_line_label(i, "Data {0}".format(i))
+            else:
+                self.qtgui_const_sink_x_0.set_line_label(i, labels[i])
+            self.qtgui_const_sink_x_0.set_line_width(i, widths[i])
+            self.qtgui_const_sink_x_0.set_line_color(i, colors[i])
+            self.qtgui_const_sink_x_0.set_line_style(i, styles[i])
+            self.qtgui_const_sink_x_0.set_line_marker(i, markers[i])
+            self.qtgui_const_sink_x_0.set_line_alpha(i, alphas[i])
+        
+        self._qtgui_const_sink_x_0_win = sip.wrapinstance(self.qtgui_const_sink_x_0.pyqwidget(), Qt.QWidget)
+        self.notebook_rds_layout_2.addWidget(self._qtgui_const_sink_x_0_win)
         self.low_pass_filter_2 = filter.fir_filter_fff(1, firdes.low_pass(
         	1, baseband_rate, 16e3, 1e3, firdes.WIN_HAMMING, 6.76))
         self.low_pass_filter_1 = filter.fir_filter_fff(1, firdes.low_pass(
         	10, baseband_rate, 15e3, 3e3, firdes.WIN_HAMMING, 6.76))
         self.low_pass_filter_0 = filter.fir_filter_ccf(baseband_decimation, firdes.low_pass(
         	1, samp_rate, 60e3, 1e3, firdes.WIN_HAMMING, 6.76))
-        self.blocks_multiply_xx_1_0 = blocks.multiply_vff(1)
+        self.freq_xlating_fir_filter_xxx_1_0 = filter.freq_xlating_fir_filter_fcc(rds_dec, (firdes.low_pass(2500.0,baseband_rate, 2.4e3, 2e3, firdes.WIN_HAMMING)), rds_subcarrier, baseband_rate)
+        self.digital_mpsk_receiver_cc_0 = digital.mpsk_receiver_cc(2, 0, 1*cmath.pi/100.0, -0.06, 0.06, 0.5, 0.05, rds_samp_rate / (rds_bitrate * 2), 0.001, 0.005)
+        self.digital_diff_decoder_bb_0 = digital.diff_decoder_bb(2)
+        self.digital_binary_slicer_fb_0 = digital.binary_slicer_fb()
         self.blocks_multiply_xx_1 = blocks.multiply_vff(1)
         self.blocks_multiply_xx_0_0 = blocks.multiply_vff(1)
         self.blocks_multiply_xx_0 = blocks.multiply_vff(1)
-        self.blocks_multiply_const_vxx_2_0 = blocks.multiply_const_vff((100000000, ))
         self.blocks_multiply_const_vxx_2 = blocks.multiply_const_vff((100000, ))
         self.blocks_multiply_const_vxx_1 = blocks.multiply_const_vff((slider_volume, ))
         self.blocks_multiply_const_vxx_0_0 = blocks.multiply_const_vff((1000000, ))
         self.blocks_multiply_const_vxx_0 = blocks.multiply_const_vff((1000, ))
+        self.blocks_keep_one_in_n_0 = blocks.keep_one_in_n(gr.sizeof_char*1, 2)
+        self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_char*1, "/home/brian/fm_radio/rds_data.bin", False)
+        self.blocks_file_sink_0.set_unbuffered(False)
+        self.blocks_complex_to_real_0 = blocks.complex_to_real(1)
         self.band_pass_filter_1_0 = filter.interp_fir_filter_fff(1, firdes.band_pass(
         	1, baseband_rate, (19e3 * 3) - 0.5e3, (19e3 * 3) + 0.5e3, 0.5e3, firdes.WIN_HAMMING, 6.76))
         self.band_pass_filter_1 = filter.interp_fir_filter_fff(1, firdes.band_pass(
         	1, baseband_rate, 37.5e3, 38.5e3, 0.5e3, firdes.WIN_HAMMING, 6.76))
-        self.band_pass_filter_0_0_0 = filter.fir_filter_fff(1, firdes.band_pass(
-        	1, baseband_rate, rds_subcarrier - 2e3, rds_subcarrier + 2e3, 0.5e3, firdes.WIN_HAMMING, 6.76))
         self.band_pass_filter_0_0 = filter.fir_filter_fff(1, firdes.band_pass(
         	1, baseband_rate, 23e3, 53e3, 1e3, firdes.WIN_HAMMING, 6.76))
         self.band_pass_filter_0 = filter.fir_filter_fff(1, firdes.band_pass(
@@ -549,7 +602,7 @@ class fm_radio(gr.top_block, Qt.QWidget):
         self.connect((self.analog_fm_deemph_0_0, 0), (self.qtgui_freq_sink_x_0_1_0, 0))    
         self.connect((self.analog_wfm_rcv_0, 0), (self.band_pass_filter_0, 0))    
         self.connect((self.analog_wfm_rcv_0, 0), (self.band_pass_filter_0_0, 0))    
-        self.connect((self.analog_wfm_rcv_0, 0), (self.band_pass_filter_0_0_0, 0))    
+        self.connect((self.analog_wfm_rcv_0, 0), (self.freq_xlating_fir_filter_xxx_1_0, 0))    
         self.connect((self.analog_wfm_rcv_0, 0), (self.low_pass_filter_1, 0))    
         self.connect((self.analog_wfm_rcv_0, 0), (self.qtgui_freq_sink_x_0_0, 0))    
         self.connect((self.band_pass_filter_0, 0), (self.blocks_multiply_xx_0, 0))    
@@ -560,28 +613,31 @@ class fm_radio(gr.top_block, Qt.QWidget):
         self.connect((self.band_pass_filter_0, 0), (self.qtgui_freq_sink_x_0_1_0_0, 0))    
         self.connect((self.band_pass_filter_0, 0), (self.qtgui_time_sink_x_0, 0))    
         self.connect((self.band_pass_filter_0_0, 0), (self.blocks_multiply_xx_1, 1))    
-        self.connect((self.band_pass_filter_0_0_0, 0), (self.blocks_multiply_xx_1_0, 0))    
         self.connect((self.band_pass_filter_1, 0), (self.blocks_multiply_xx_1, 0))    
-        self.connect((self.band_pass_filter_1, 0), (self.blocks_multiply_xx_1_0, 1))    
         self.connect((self.band_pass_filter_1, 0), (self.qtgui_freq_sink_x_0_1_0_0, 1))    
         self.connect((self.band_pass_filter_1_0, 0), (self.qtgui_freq_sink_x_0_1_0_0, 2))    
+        self.connect((self.blocks_complex_to_real_0, 0), (self.digital_binary_slicer_fb_0, 0))    
+        self.connect((self.blocks_keep_one_in_n_0, 0), (self.digital_diff_decoder_bb_0, 0))    
         self.connect((self.blocks_multiply_const_vxx_0, 0), (self.band_pass_filter_1, 0))    
         self.connect((self.blocks_multiply_const_vxx_0_0, 0), (self.band_pass_filter_1_0, 0))    
         self.connect((self.blocks_multiply_const_vxx_1, 0), (self.audio_sink_0, 0))    
         self.connect((self.blocks_multiply_const_vxx_2, 0), (self.low_pass_filter_2, 0))    
-        self.connect((self.blocks_multiply_const_vxx_2_0, 0), (self.low_pass_filter_2_0_1, 0))    
         self.connect((self.blocks_multiply_xx_0, 0), (self.blocks_multiply_const_vxx_0, 0))    
         self.connect((self.blocks_multiply_xx_0_0, 0), (self.blocks_multiply_const_vxx_0_0, 0))    
         self.connect((self.blocks_multiply_xx_1, 0), (self.blocks_multiply_const_vxx_2, 0))    
-        self.connect((self.blocks_multiply_xx_1_0, 0), (self.low_pass_filter_2_0, 0))    
+        self.connect((self.digital_binary_slicer_fb_0, 0), (self.blocks_keep_one_in_n_0, 0))    
+        self.connect((self.digital_diff_decoder_bb_0, 0), (self.blocks_file_sink_0, 0))    
+        self.connect((self.digital_mpsk_receiver_cc_0, 0), (self.blocks_complex_to_real_0, 0))    
+        self.connect((self.digital_mpsk_receiver_cc_0, 0), (self.qtgui_const_sink_x_0, 0))    
+        self.connect((self.digital_mpsk_receiver_cc_0, 0), (self.qtgui_time_sink_x_1, 0))    
+        self.connect((self.freq_xlating_fir_filter_xxx_1_0, 0), (self.qtgui_freq_sink_x_1, 0))    
+        self.connect((self.freq_xlating_fir_filter_xxx_1_0, 0), (self.root_raised_cosine_filter_0, 0))    
         self.connect((self.low_pass_filter_0, 0), (self.analog_wfm_rcv_0, 0))    
         self.connect((self.low_pass_filter_1, 0), (self.rational_resampler_xxx_0, 0))    
         self.connect((self.low_pass_filter_2, 0), (self.rational_resampler_xxx_0_0, 0))    
-        self.connect((self.low_pass_filter_2_0, 0), (self.blocks_multiply_const_vxx_2_0, 0))    
-        self.connect((self.low_pass_filter_2_0_1, 0), (self.qtgui_freq_sink_x_0_1, 0))    
-        self.connect((self.low_pass_filter_2_0_1, 0), (self.qtgui_time_sink_x_1, 0))    
         self.connect((self.rational_resampler_xxx_0, 0), (self.analog_fm_deemph_0, 0))    
         self.connect((self.rational_resampler_xxx_0_0, 0), (self.analog_fm_deemph_0_0, 0))    
+        self.connect((self.root_raised_cosine_filter_0, 0), (self.digital_mpsk_receiver_cc_0, 0))    
         self.connect((self.rtlsdr_source_0, 0), (self.low_pass_filter_0, 0))    
         self.connect((self.rtlsdr_source_0, 0), (self.qtgui_freq_sink_x_0, 0))    
 
@@ -622,18 +678,14 @@ class fm_radio(gr.top_block, Qt.QWidget):
         self.set_rds_samp_rate(self.baseband_rate / self.rds_dec)
         self.band_pass_filter_0.set_taps(firdes.band_pass(1, self.baseband_rate, 18.5e3, 19.5e3, 1e3, firdes.WIN_HAMMING, 6.76))
         self.band_pass_filter_0_0.set_taps(firdes.band_pass(1, self.baseband_rate, 23e3, 53e3, 1e3, firdes.WIN_HAMMING, 6.76))
-        self.band_pass_filter_0_0_0.set_taps(firdes.band_pass(1, self.baseband_rate, self.rds_subcarrier - 2e3, self.rds_subcarrier + 2e3, 0.5e3, firdes.WIN_HAMMING, 6.76))
         self.band_pass_filter_1.set_taps(firdes.band_pass(1, self.baseband_rate, 37.5e3, 38.5e3, 0.5e3, firdes.WIN_HAMMING, 6.76))
         self.band_pass_filter_1_0.set_taps(firdes.band_pass(1, self.baseband_rate, (19e3 * 3) - 0.5e3, (19e3 * 3) + 0.5e3, 0.5e3, firdes.WIN_HAMMING, 6.76))
+        self.freq_xlating_fir_filter_xxx_1_0.set_taps((firdes.low_pass(2500.0,self.baseband_rate, 2.4e3, 2e3, firdes.WIN_HAMMING)))
         self.low_pass_filter_1.set_taps(firdes.low_pass(10, self.baseband_rate, 15e3, 3e3, firdes.WIN_HAMMING, 6.76))
         self.low_pass_filter_2.set_taps(firdes.low_pass(1, self.baseband_rate, 16e3, 1e3, firdes.WIN_HAMMING, 6.76))
-        self.low_pass_filter_2_0.set_taps(firdes.low_pass(1, self.baseband_rate, 2e3, 0.5e3, firdes.WIN_HAMMING, 6.76))
-        self.low_pass_filter_2_0_1.set_taps(firdes.low_pass(1, self.baseband_rate / 10, 2e3, 0.5e3, firdes.WIN_HAMMING, 6.76))
         self.qtgui_freq_sink_x_0_0.set_frequency_range(0, self.baseband_rate)
-        self.qtgui_freq_sink_x_0_1.set_frequency_range(0, self.baseband_rate / 10)
         self.qtgui_freq_sink_x_0_1_0_0.set_frequency_range(0, self.baseband_rate)
         self.qtgui_time_sink_x_0.set_samp_rate(self.baseband_rate)
-        self.qtgui_time_sink_x_1.set_samp_rate(self.baseband_rate / 10)
 
     def get_slider_volume(self):
         return self.slider_volume
@@ -647,19 +699,24 @@ class fm_radio(gr.top_block, Qt.QWidget):
 
     def set_rds_subcarrier(self, rds_subcarrier):
         self.rds_subcarrier = rds_subcarrier
-        self.band_pass_filter_0_0_0.set_taps(firdes.band_pass(1, self.baseband_rate, self.rds_subcarrier - 2e3, self.rds_subcarrier + 2e3, 0.5e3, firdes.WIN_HAMMING, 6.76))
+        self.freq_xlating_fir_filter_xxx_1_0.set_center_freq(self.rds_subcarrier)
 
     def get_rds_samp_rate(self):
         return self.rds_samp_rate
 
     def set_rds_samp_rate(self, rds_samp_rate):
         self.rds_samp_rate = rds_samp_rate
+        self.digital_mpsk_receiver_cc_0.set_omega(self.rds_samp_rate / (self.rds_bitrate * 2))
+        self.qtgui_freq_sink_x_1.set_frequency_range(0, self.rds_samp_rate)
+        self.root_raised_cosine_filter_0.set_taps(firdes.root_raised_cosine(1, self.rds_samp_rate, 2375, 1, 100))
 
     def get_rds_bitrate(self):
         return self.rds_bitrate
 
     def set_rds_bitrate(self, rds_bitrate):
         self.rds_bitrate = rds_bitrate
+        self.digital_mpsk_receiver_cc_0.set_omega(self.rds_samp_rate / (self.rds_bitrate * 2))
+        self.qtgui_time_sink_x_1.set_samp_rate(self.rds_bitrate * 2)
 
     def get_fm_station(self):
         return self.fm_station
