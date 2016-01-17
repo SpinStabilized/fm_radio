@@ -345,6 +345,33 @@
     </param>
     <param>
       <key>_coordinate</key>
+      <value>(16, 2651)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>rds_bandwidth</value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>2.5e3</value>
+    </param>
+  </block>
+  <block>
+    <key>variable</key>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
       <value>(128, 2715)</value>
     </param>
     <param>
@@ -439,6 +466,33 @@
     <param>
       <key>value</key>
       <value>pilot_tone * 3</value>
+    </param>
+  </block>
+  <block>
+    <key>variable</key>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(224, 2715)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>rds_symbols_per_bit</value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>2</value>
     </param>
   </block>
   <block>
@@ -2463,7 +2517,7 @@
     </param>
     <param>
       <key>taps</key>
-      <value>firdes.low_pass(2500,baseband_rate,2.5e3,0.5e3,firdes.WIN_HAMMING)</value>
+      <value>firdes.low_pass(2500,baseband_rate,rds_bandwidth,0.5e3,firdes.WIN_HAMMING)</value>
     </param>
     <param>
       <key>type</key>
@@ -2490,7 +2544,7 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>True</value>
+      <value>1</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -2502,7 +2556,7 @@
     </param>
     <param>
       <key>id</key>
-      <value>gr_rds_decoder_0_0</value>
+      <value>gr_rds_decoder_0</value>
     </param>
     <param>
       <key>log</key>
@@ -2541,7 +2595,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(432, 2787)</value>
+      <value>(640, 2635)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -2562,6 +2616,10 @@
     <param>
       <key>minoutbuf</key>
       <value>0</value>
+    </param>
+    <param>
+      <key>pty_locale</key>
+      <value>1</value>
     </param>
     <param>
       <key>reset</key>
@@ -5353,7 +5411,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(680, 2339)</value>
+      <value>(680, 2305)</value>
     </param>
     <param>
       <key>gui_hint</key>
@@ -6559,7 +6617,7 @@
     </param>
     <param>
       <key>sym_rate</key>
-      <value>rds_bitrate * 2</value>
+      <value>rds_bitrate * rds_symbols_per_bit</value>
     </param>
   </block>
   <block>
@@ -8421,19 +8479,19 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>True</value>
+      <value>1</value>
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(424, 2699)</value>
+      <value>(416, 2643)</value>
     </param>
     <param>
       <key>_rotation</key>
-      <value>0</value>
+      <value>180</value>
     </param>
     <param>
       <key>id</key>
-      <value>zeromq_pub_msg_sink_0</value>
+      <value>zeromq_pub_msg_sink_1</value>
     </param>
     <param>
       <key>timeout</key>
@@ -8664,7 +8722,7 @@
   </connection>
   <connection>
     <source_block_id>digital_diff_decoder_bb_0</source_block_id>
-    <sink_block_id>gr_rds_decoder_0_0</sink_block_id>
+    <sink_block_id>gr_rds_decoder_0</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
   </connection>
@@ -8693,14 +8751,14 @@
     <sink_key>0</sink_key>
   </connection>
   <connection>
-    <source_block_id>gr_rds_decoder_0_0</source_block_id>
+    <source_block_id>gr_rds_decoder_0</source_block_id>
     <sink_block_id>gr_rds_parser_0</sink_block_id>
     <source_key>out</source_key>
     <sink_key>in</sink_key>
   </connection>
   <connection>
     <source_block_id>gr_rds_parser_0</source_block_id>
-    <sink_block_id>zeromq_pub_msg_sink_0</sink_block_id>
+    <sink_block_id>zeromq_pub_msg_sink_1</sink_block_id>
     <source_key>out</source_key>
     <sink_key>in</sink_key>
   </connection>

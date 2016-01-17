@@ -4,7 +4,7 @@
 # GNU Radio Python Flow Graph
 # Title: FM Radio
 # Author: Brian McLaughlin (bjmclaughlin@gmail.com)
-# Generated: Fri Jan 15 16:08:12 2016
+# Generated: Sun Jan 17 09:51:22 2016
 ##################################################
 
 if __name__ == '__main__':
@@ -81,9 +81,11 @@ class fm_radio(gr.top_block, Qt.QWidget):
         self.stereo_button = stereo_button = 0
         self.slider_volume = slider_volume = 0
         self.sdr_gain = sdr_gain = valid_gains[rf_gain]
+        self.rds_symbols_per_bit = rds_symbols_per_bit = 2
         self.rds_subcarrier = rds_subcarrier = pilot_tone * 3
         self.rds_samp_rate = rds_samp_rate = baseband_rate / rds_dec
         self.rds_bitrate = rds_bitrate = 1.1875e3
+        self.rds_bandwidth = rds_bandwidth = 2.5e3
         self.fm_station = fm_station = 102.7
         self.fm_broadcast_seperation = fm_broadcast_seperation = 0.2
         self.fm_broadcast_low = fm_broadcast_low = 87.1
@@ -155,7 +157,7 @@ class fm_radio(gr.top_block, Qt.QWidget):
         self._fm_station_range = Range(fm_broadcast_low, fm_broadcast_high, fm_broadcast_seperation, 102.7, 200)
         self._fm_station_win = RangeWidget(self._fm_station_range, self.set_fm_station, "FM Station", "counter_slider", float)
         self.top_grid_layout.addWidget(self._fm_station_win, 0, 0, 1, 8)
-        self.zeromq_pub_msg_sink_0 = zeromq.pub_msg_sink("tcp://127.0.0.1:6000", 100)
+        self.zeromq_pub_msg_sink_1 = zeromq.pub_msg_sink("tcp://127.0.0.1:6000", 100)
         self._stereo_button_options = (0, 1, )
         self._stereo_button_labels = ("Mono", "Stereo", )
         self._stereo_button_tool_bar = Qt.QToolBar(self)
@@ -182,7 +184,7 @@ class fm_radio(gr.top_block, Qt.QWidget):
         self.rtlsdr_source_0.set_bandwidth(0, 0)
           
         self.root_raised_cosine_filter_0 = filter.fir_filter_ccf(1, firdes.root_raised_cosine(
-        	1, rds_samp_rate, rds_bitrate * 2, 0.275, 10))
+        	1, rds_samp_rate, rds_bitrate * rds_symbols_per_bit, 0.275, 10))
         self._rf_gain_range = Range(0, len(valid_gains)-1, 1, len(valid_gains)-1, 200)
         self._rf_gain_win = RangeWidget(self._rf_gain_range, self.set_rf_gain, "RF Gain", "counter_slider", int)
         self.top_grid_layout.addWidget(self._rf_gain_win, 1, 0, 1, 1)
@@ -631,9 +633,9 @@ class fm_radio(gr.top_block, Qt.QWidget):
         	10, baseband_rate, 15e3, 3e3, firdes.WIN_HAMMING, 6.76))
         self.low_pass_filter_0 = filter.fir_filter_ccf(baseband_decimation, firdes.low_pass(
         	1, samp_rate, 60e3, 1e3, firdes.WIN_HAMMING, 6.76))
-        self.gr_rds_parser_0 = rds.parser(True, False)
-        self.gr_rds_decoder_0_0 = rds.decoder(False, False)
-        self.freq_xlating_fir_filter_xxx_1 = filter.freq_xlating_fir_filter_fcc(rds_dec, (firdes.low_pass(2500,baseband_rate,2.5e3,0.5e3,firdes.WIN_HAMMING)), rds_subcarrier, baseband_rate)
+        self.gr_rds_parser_0 = rds.parser(True, False, 1)
+        self.gr_rds_decoder_0 = rds.decoder(False, False)
+        self.freq_xlating_fir_filter_xxx_1 = filter.freq_xlating_fir_filter_fcc(rds_dec, (firdes.low_pass(2500,baseband_rate,rds_bandwidth,0.5e3,firdes.WIN_HAMMING)), rds_subcarrier, baseband_rate)
         self.digital_mpsk_receiver_cc_0 = digital.mpsk_receiver_cc(2, 0, (2 * cmath.pi) / 100, -0.00006, 0.00006, 0.5, 0.05, rds_samp_rate / (rds_bitrate * 2), ((rds_samp_rate / (rds_bitrate * 2)) ** 2)/ 4, 0.005)
         self.digital_diff_decoder_bb_0 = digital.diff_decoder_bb(2)
         self.digital_binary_slicer_fb_0 = digital.binary_slicer_fb()
@@ -687,8 +689,8 @@ class fm_radio(gr.top_block, Qt.QWidget):
         ##################################################
         # Connections
         ##################################################
-        self.msg_connect((self.gr_rds_decoder_0_0, 'out'), (self.gr_rds_parser_0, 'in'))    
-        self.msg_connect((self.gr_rds_parser_0, 'out'), (self.zeromq_pub_msg_sink_0, 'in'))    
+        self.msg_connect((self.gr_rds_decoder_0, 'out'), (self.gr_rds_parser_0, 'in'))    
+        self.msg_connect((self.gr_rds_parser_0, 'out'), (self.zeromq_pub_msg_sink_1, 'in'))    
         self.connect((self.analog_fm_deemph_0_0_0, 0), (self.rational_resampler_xxx_0_0_0, 0))    
         self.connect((self.analog_fm_deemph_0_0_0_0, 0), (self.rational_resampler_xxx_0_0_0_0, 0))    
         self.connect((self.analog_fm_deemph_0_0_0_1, 0), (self.rational_resampler_xxx_0_0_0_1, 0))    
@@ -727,7 +729,7 @@ class fm_radio(gr.top_block, Qt.QWidget):
         self.connect((self.blocks_uchar_to_float_0_0, 0), (self.blocks_add_const_vxx_0, 0))    
         self.connect((self.digital_binary_slicer_fb_0, 0), (self.blocks_keep_one_in_n_0, 0))    
         self.connect((self.digital_diff_decoder_bb_0, 0), (self.blocks_uchar_to_float_0_0, 0))    
-        self.connect((self.digital_diff_decoder_bb_0, 0), (self.gr_rds_decoder_0_0, 0))    
+        self.connect((self.digital_diff_decoder_bb_0, 0), (self.gr_rds_decoder_0, 0))    
         self.connect((self.digital_mpsk_receiver_cc_0, 0), (self.blocks_complex_to_real_0, 0))    
         self.connect((self.digital_mpsk_receiver_cc_0, 0), (self.qtgui_const_sink_x_0, 0))    
         self.connect((self.freq_xlating_fir_filter_xxx_1, 0), (self.qtgui_freq_sink_x_1, 0))    
@@ -820,7 +822,7 @@ class fm_radio(gr.top_block, Qt.QWidget):
         self.band_pass_filter_0.set_taps(firdes.complex_band_pass(1, self.baseband_rate, self.pilot_tone - 0.5e3, self.pilot_tone+0.5e3, 1e3, firdes.WIN_HAMMING, 6.76))
         self.band_pass_filter_0_0.set_taps(firdes.band_pass(1, self.baseband_rate, 23e3, 53e3, 1e3, firdes.WIN_HAMMING, 6.76))
         self.band_pass_filter_1.set_taps(firdes.band_pass(1, self.baseband_rate, self.stereo_subcarrier - 0.5e3, self.stereo_subcarrier + 0.5e3, 0.5e3, firdes.WIN_HAMMING, 6.76))
-        self.freq_xlating_fir_filter_xxx_1.set_taps((firdes.low_pass(2500,self.baseband_rate,2.5e3,0.5e3,firdes.WIN_HAMMING)))
+        self.freq_xlating_fir_filter_xxx_1.set_taps((firdes.low_pass(2500,self.baseband_rate,self.rds_bandwidth,0.5e3,firdes.WIN_HAMMING)))
         self.low_pass_filter_1.set_taps(firdes.low_pass(10, self.baseband_rate, 15e3, 3e3, firdes.WIN_HAMMING, 6.76))
         self.low_pass_filter_2.set_taps(firdes.low_pass(1, self.baseband_rate, 16e3, 1e3, firdes.WIN_HAMMING, 6.76))
         self.low_pass_filter_4.set_taps(firdes.low_pass(1, self.baseband_rate, 59e3, 0.5e3, firdes.WIN_HAMMING, 6.76))
@@ -858,6 +860,13 @@ class fm_radio(gr.top_block, Qt.QWidget):
         self.sdr_gain = sdr_gain
         self.rtlsdr_source_0.set_gain(self.sdr_gain, 0)
 
+    def get_rds_symbols_per_bit(self):
+        return self.rds_symbols_per_bit
+
+    def set_rds_symbols_per_bit(self, rds_symbols_per_bit):
+        self.rds_symbols_per_bit = rds_symbols_per_bit
+        self.root_raised_cosine_filter_0.set_taps(firdes.root_raised_cosine(1, self.rds_samp_rate, self.rds_bitrate * self.rds_symbols_per_bit, 0.275, 10))
+
     def get_rds_subcarrier(self):
         return self.rds_subcarrier
 
@@ -873,7 +882,7 @@ class fm_radio(gr.top_block, Qt.QWidget):
         self.digital_mpsk_receiver_cc_0.set_omega(self.rds_samp_rate / (self.rds_bitrate * 2))
         self.digital_mpsk_receiver_cc_0.set_gain_omega(((self.rds_samp_rate / (self.rds_bitrate * 2)) ** 2)/ 4)
         self.qtgui_freq_sink_x_1.set_frequency_range(0, self.rds_samp_rate)
-        self.root_raised_cosine_filter_0.set_taps(firdes.root_raised_cosine(1, self.rds_samp_rate, self.rds_bitrate * 2, 0.275, 10))
+        self.root_raised_cosine_filter_0.set_taps(firdes.root_raised_cosine(1, self.rds_samp_rate, self.rds_bitrate * self.rds_symbols_per_bit, 0.275, 10))
 
     def get_rds_bitrate(self):
         return self.rds_bitrate
@@ -882,7 +891,14 @@ class fm_radio(gr.top_block, Qt.QWidget):
         self.rds_bitrate = rds_bitrate
         self.digital_mpsk_receiver_cc_0.set_omega(self.rds_samp_rate / (self.rds_bitrate * 2))
         self.digital_mpsk_receiver_cc_0.set_gain_omega(((self.rds_samp_rate / (self.rds_bitrate * 2)) ** 2)/ 4)
-        self.root_raised_cosine_filter_0.set_taps(firdes.root_raised_cosine(1, self.rds_samp_rate, self.rds_bitrate * 2, 0.275, 10))
+        self.root_raised_cosine_filter_0.set_taps(firdes.root_raised_cosine(1, self.rds_samp_rate, self.rds_bitrate * self.rds_symbols_per_bit, 0.275, 10))
+
+    def get_rds_bandwidth(self):
+        return self.rds_bandwidth
+
+    def set_rds_bandwidth(self, rds_bandwidth):
+        self.rds_bandwidth = rds_bandwidth
+        self.freq_xlating_fir_filter_xxx_1.set_taps((firdes.low_pass(2500,self.baseband_rate,self.rds_bandwidth,0.5e3,firdes.WIN_HAMMING)))
 
     def get_fm_station(self):
         return self.fm_station
