@@ -1501,7 +1501,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1248, 2763)</value>
+      <value>(1448, 2795)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1552,11 +1552,11 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1368, 2627)</value>
+      <value>(1448, 2723)</value>
     </param>
     <param>
       <key>_rotation</key>
-      <value>180</value>
+      <value>0</value>
     </param>
     <param>
       <key>id</key>
@@ -1736,11 +1736,11 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1208, 2571)</value>
+      <value>(1211, 2632)</value>
     </param>
     <param>
       <key>_rotation</key>
-      <value>0</value>
+      <value>270</value>
     </param>
     <param>
       <key>id</key>
@@ -2246,7 +2246,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1360, 2577)</value>
+      <value>(1288, 2729)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -2285,7 +2285,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1024, 2769)</value>
+      <value>(1288, 2801)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -2363,7 +2363,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1016, 2651)</value>
+      <value>(1040, 2723)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -2548,7 +2548,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(848, 2643)</value>
+      <value>(872, 2715)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -2595,7 +2595,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(640, 2635)</value>
+      <value>(656, 2707)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -2607,7 +2607,7 @@
     </param>
     <param>
       <key>log</key>
-      <value>True</value>
+      <value>False</value>
     </param>
     <param>
       <key>maxoutbuf</key>
@@ -2642,7 +2642,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(8, 99)</value>
+      <value>(32, 91)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -3338,7 +3338,7 @@
     </param>
     <param>
       <key>grid</key>
-      <value>False</value>
+      <value>True</value>
     </param>
     <param>
       <key>id</key>
@@ -3630,19 +3630,19 @@
     </param>
     <param>
       <key>xmax</key>
-      <value>2</value>
+      <value>1.6</value>
     </param>
     <param>
       <key>xmin</key>
-      <value>-2</value>
+      <value>-1.6</value>
     </param>
     <param>
       <key>ymax</key>
-      <value>2</value>
+      <value>1.6</value>
     </param>
     <param>
       <key>ymin</key>
-      <value>-2</value>
+      <value>-1.6</value>
     </param>
   </block>
   <block>
@@ -4216,7 +4216,7 @@
     </param>
     <param>
       <key>ymin</key>
-      <value>-120</value>
+      <value>-100</value>
     </param>
   </block>
   <block>
@@ -6045,7 +6045,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1424, 2731)</value>
+      <value>(1632, 2731)</value>
     </param>
     <param>
       <key>gui_hint</key>
@@ -6077,7 +6077,7 @@
     </param>
     <param>
       <key>label1</key>
-      <value>Differential Encoded</value>
+      <value>Raw Bit Stream</value>
     </param>
     <param>
       <key>marker1</key>
@@ -6125,7 +6125,7 @@
     </param>
     <param>
       <key>label2</key>
-      <value>Raw Bit Stream</value>
+      <value>Differential Decoded</value>
     </param>
     <param>
       <key>marker2</key>
@@ -6547,6 +6547,45 @@
     <param>
       <key>type</key>
       <value>fff</value>
+    </param>
+  </block>
+  <block>
+    <key>rds_qt_panel</key>
+    <param>
+      <key>alias</key>
+      <value></value>
+    </param>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>affinity</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>frequency</key>
+      <value>fm_station</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(488, 2787)</value>
+    </param>
+    <param>
+      <key>gui_hint</key>
+      <value>notebook_top@5</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>180</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>rds_qt_panel_0</value>
     </param>
   </block>
   <block>
@@ -8483,7 +8522,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(416, 2643)</value>
+      <value>(432, 2715)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -8753,6 +8792,12 @@
   <connection>
     <source_block_id>gr_rds_decoder_0</source_block_id>
     <sink_block_id>gr_rds_parser_0</sink_block_id>
+    <source_key>out</source_key>
+    <sink_key>in</sink_key>
+  </connection>
+  <connection>
+    <source_block_id>gr_rds_parser_0</source_block_id>
+    <sink_block_id>rds_qt_panel_0</sink_block_id>
     <source_key>out</source_key>
     <sink_key>in</sink_key>
   </connection>

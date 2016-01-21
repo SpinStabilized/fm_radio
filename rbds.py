@@ -4,9 +4,19 @@ import pmt
 import traceback
 
 import argparse
+from string import maketrans
+import rbds_const
+
+
+ansi_esc_char = '\x1b['
+def ansi_erase_display(n = 0):
+	return ansi_esc_char + str(n) + 'J'
+
+def ansi_move_to(n = 1, m = 1):
+	return ansi_esc_char + str(n) + ';' + str(m) + 'H'
 
 class RBDSData(object):
-	
+
 	def __init__(self):
 		self.program_info = ''
 		self.station_name = ''
@@ -22,7 +32,14 @@ class RBDSData(object):
 		self.clock_time = 0
 		self.alt_freq = 0
 		self.frequency = 0
-	
+
+	@property
+	def program_info(self):
+		return self._program_info
+	@program_info.setter
+	def program_info(self, value):
+		self._program_info = value.upper()
+
 	def set_flags(self, flags):
 		self.traffic_program = bool(int(flags[0]))
 		self.traffic_alert = bool(int(flags[1]))
@@ -31,7 +48,7 @@ class RBDSData(object):
 		self.artificial_head = bool(int(flags[4]))
 		self.compressed = bool(int(flags[5]))
 		self.dynamic_pty = bool(int(flags[6]))
-	
+
 	def update(self, msg_type, msg):
 		if msg_type == 0:
 			self.program_info = msg
@@ -49,11 +66,45 @@ class RBDSData(object):
 			self.alg_freq = msg
 		elif mg_type == 7:
 			self.frequency = msg
-	
+
+	def callsign(self):
+		pi = self.program_info
+		if pi[0:2] == 'AF':
+			picode = pi[2:] + '00'
+
+		if pi[0] == 'A':
+			picode = pi[1] + '0' + pi[2:]
+
+		picode = int(pi, 16)
+		cs = ['','','','']
+		if picode > 4095 and picode < 39247:
+			if picode > 21671:
+				cs[0] = 'W'
+				picode = picode - 21672
+			else:
+				cs[0] = 'K'
+				picode = picode - 4096
+
+			cs[1] = picode // 676
+			picode = picode - (676 * cs[1])
+			cs[2] = picode // 26
+			cs[3] = picode - (26 * cs[2])
+			cs[1] = chr(cs[1] + ord('A'))
+			cs[2] = chr(cs[2] + ord('A'))
+			cs[3] = chr(cs[3] + ord('A'))
+			cs = ''.join(cs)
+		elif picode in rbds_const.three_letter.keys():
+				cs = rbds_const.three_letter[picode]
+		else:
+			cs = 'ERR'
+
+		return cs
+
 	def __repr__(self):
-		rtn_str = ''
-		rtn_str += 'Program Info: {:>4} - Program Type: {}\n'.format(self.program_info, self.program_type)
-		flag_str = ['_', '_', 'S', 'S', '_', '_', '_']
+		rtn_str = '[' + ('-' * 85) + ']'
+		pi_pt_str = 'Program Info: {:>4} - Program Type: {}'.format(self.callsign(), self.program_type)
+		rtn_str += '\n[ {:<84}]\n'.format(pi_pt_str)
+		flag_str = [' ', ' ', 'S', 'S', ' ', ' ', ' ']
 		if self.traffic_program:
 			flag_str[0] = '*'
 		if self.traffic_alert:
@@ -68,12 +119,15 @@ class RBDSData(object):
 			flag_Str[5] = '*'
 		if self.dynamic_pty:
 			flag_str[6] = '*'
-		
-		rtn_str += 'Traffic Program: ({}) Traffic Alert: ({}) Music/Speech: ({}) Mono/Stereo: ({})\n'.format(flag_str[0], flag_str[1], flag_str[2], flag_str[3])
-		rtn_str += '{}\n{}\n'.format(self.station_name, self.radio_text)
+
+		rt = self.radio_text.strip()
+		rtn_str += '[ Traffic Program: ({}) ][ Traffic Alert: ({}) ][ Music/Speech: ({}) ][ Mono/Stereo: ({}) ]\n'.format(flag_str[0], flag_str[1], flag_str[2], flag_str[3])
+		rtn_str += '[ Artificial Head: ({}) ][ Compressed:    ({}) ][ Dynamic PTY:  ({}) ][                  ]\n'.format(flag_str[4], flag_str[5], flag_str[6])
+		rtn_str += '[ {:<84}]\n[ {:<84}]\n'.format(self.station_name, rt)
+		rtn_str += '[' + ('-' * 85) + ']'
 		return rtn_str
-			
-		 
+
+
 
 # Flags
 # 0 - TP Flag (Station Has Traffic Information)
@@ -98,7 +152,7 @@ if __name__ == "__main__":
     parser.add_argument('--server', '-s', default='127.0.0.1', help='remote server')
     parser.add_argument('--port', '-p', default=6000, type=int, help='remote port')
     args = parser.parse_args()
-    
+
     # Socket to talk to server
     context = zmq.Context()
     socket = context.socket(zmq.SUB)
@@ -115,12 +169,12 @@ if __name__ == "__main__":
                 msg_type = pmt.to_long(pmt.tuple_ref(gnr_message_pmt, 0))
                 msg = pmt.symbol_to_string(pmt.tuple_ref(gnr_message_pmt, 1))
                 data.update(msg_type, msg)
-                print repr(data)
+                print ansi_erase_display(2) + repr(data) + ansi_move_to(1,1)
             else:
 			    print 'Encountered Data I Did Not Understand'
-			    
+
     except KeyboardInterrupt:
-        print "Shutdown requested...exiting"
+        print ansi_erase_display(2) + ansi_move_to(1,1) + "Shutdown requested...exiting"
     except Exception:
         traceback.print_exc(file=sys.stdout)
     sys.exit(0)

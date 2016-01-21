@@ -4,7 +4,7 @@
 # GNU Radio Python Flow Graph
 # Title: FM Radio
 # Author: Brian McLaughlin (bjmclaughlin@gmail.com)
-# Generated: Sun Jan 17 09:51:22 2016
+# Generated: Thu Jan 21 16:43:44 2016
 ##################################################
 
 if __name__ == '__main__':
@@ -188,6 +188,9 @@ class fm_radio(gr.top_block, Qt.QWidget):
         self._rf_gain_range = Range(0, len(valid_gains)-1, 1, len(valid_gains)-1, 200)
         self._rf_gain_win = RangeWidget(self._rf_gain_range, self.set_rf_gain, "RF Gain", "counter_slider", int)
         self.top_grid_layout.addWidget(self._rf_gain_win, 1, 0, 1, 1)
+        self.rds_qt_panel_0 = self.rds_qt_panel_0 = rds.qt_panel()
+        self.notebook_top_layout_5.addWidget(self.rds_qt_panel_0)
+          
         self.rational_resampler_xxx_0_0_0_1 = filter.rational_resampler_fff(
                 interpolation=int(audio_rate),
                 decimation=int(baseband_rate),
@@ -226,7 +229,7 @@ class fm_radio(gr.top_block, Qt.QWidget):
         if not True:
           self.qtgui_time_sink_x_1.disable_legend()
         
-        labels = ["Differential Encoded", "Raw Bit Stream", "", "", "",
+        labels = ["Raw Bit Stream", "Differential Decoded", "", "", "",
                   "", "", "", "", ""]
         widths = [1, 1, 1, 1, 1,
                   1, 1, 1, 1, 1]
@@ -512,7 +515,7 @@ class fm_radio(gr.top_block, Qt.QWidget):
         	1 #number of inputs
         )
         self.qtgui_freq_sink_x_0_0.set_update_time(0.10)
-        self.qtgui_freq_sink_x_0_0.set_y_axis(-120, -30)
+        self.qtgui_freq_sink_x_0_0.set_y_axis(-100, -30)
         self.qtgui_freq_sink_x_0_0.set_trigger_mode(qtgui.TRIG_MODE_FREE, 0.0, 0, "")
         self.qtgui_freq_sink_x_0_0.enable_autoscale(False)
         self.qtgui_freq_sink_x_0_0.enable_grid(False)
@@ -591,11 +594,11 @@ class fm_radio(gr.top_block, Qt.QWidget):
         	1 #number of inputs
         )
         self.qtgui_const_sink_x_0.set_update_time(0.10)
-        self.qtgui_const_sink_x_0.set_y_axis(-2, 2)
-        self.qtgui_const_sink_x_0.set_x_axis(-2, 2)
+        self.qtgui_const_sink_x_0.set_y_axis(-1.6, 1.6)
+        self.qtgui_const_sink_x_0.set_x_axis(-1.6, 1.6)
         self.qtgui_const_sink_x_0.set_trigger_mode(qtgui.TRIG_MODE_FREE, qtgui.TRIG_SLOPE_POS, 0.0, 0, "")
         self.qtgui_const_sink_x_0.enable_autoscale(False)
-        self.qtgui_const_sink_x_0.enable_grid(False)
+        self.qtgui_const_sink_x_0.enable_grid(True)
         
         if not False:
           self.qtgui_const_sink_x_0.disable_legend()
@@ -633,7 +636,7 @@ class fm_radio(gr.top_block, Qt.QWidget):
         	10, baseband_rate, 15e3, 3e3, firdes.WIN_HAMMING, 6.76))
         self.low_pass_filter_0 = filter.fir_filter_ccf(baseband_decimation, firdes.low_pass(
         	1, samp_rate, 60e3, 1e3, firdes.WIN_HAMMING, 6.76))
-        self.gr_rds_parser_0 = rds.parser(True, False, 1)
+        self.gr_rds_parser_0 = rds.parser(False, False, 1)
         self.gr_rds_decoder_0 = rds.decoder(False, False)
         self.freq_xlating_fir_filter_xxx_1 = filter.freq_xlating_fir_filter_fcc(rds_dec, (firdes.low_pass(2500,baseband_rate,rds_bandwidth,0.5e3,firdes.WIN_HAMMING)), rds_subcarrier, baseband_rate)
         self.digital_mpsk_receiver_cc_0 = digital.mpsk_receiver_cc(2, 0, (2 * cmath.pi) / 100, -0.00006, 0.00006, 0.5, 0.05, rds_samp_rate / (rds_bitrate * 2), ((rds_samp_rate / (rds_bitrate * 2)) ** 2)/ 4, 0.005)
@@ -690,6 +693,7 @@ class fm_radio(gr.top_block, Qt.QWidget):
         # Connections
         ##################################################
         self.msg_connect((self.gr_rds_decoder_0, 'out'), (self.gr_rds_parser_0, 'in'))    
+        self.msg_connect((self.gr_rds_parser_0, 'out'), (self.rds_qt_panel_0, 'in'))    
         self.msg_connect((self.gr_rds_parser_0, 'out'), (self.zeromq_pub_msg_sink_1, 'in'))    
         self.connect((self.analog_fm_deemph_0_0_0, 0), (self.rational_resampler_xxx_0_0_0, 0))    
         self.connect((self.analog_fm_deemph_0_0_0_0, 0), (self.rational_resampler_xxx_0_0_0_0, 0))    
@@ -906,6 +910,7 @@ class fm_radio(gr.top_block, Qt.QWidget):
     def set_fm_station(self, fm_station):
         self.fm_station = fm_station
         self.qtgui_freq_sink_x_0.set_frequency_range(self.fm_station * 1e6, self.samp_rate)
+        self.rds_qt_panel_0.set_frequency(float(self.fm_station))
         self.rtlsdr_source_0.set_center_freq(self.fm_station * 1e6, 0)
 
     def get_fm_broadcast_seperation(self):
