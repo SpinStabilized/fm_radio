@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<?grc format='1' created='3.7.9'?>
+<?grc format='1' created='3.7.8'?>
 <flow_graph>
   <timestamp>Tue Dec 22 17:05:00 2015</timestamp>
   <block>
@@ -7,6 +7,10 @@
     <param>
       <key>author</key>
       <value>Brian McLaughlin (bjmclaughlin@gmail.com)</value>
+    </param>
+    <param>
+      <key>alias</key>
+      <value></value>
     </param>
     <param>
       <key>window_size</key>
@@ -41,10 +45,6 @@
       <value>qt_gui</value>
     </param>
     <param>
-      <key>hier_block_src_path</key>
-      <value>.:</value>
-    </param>
-    <param>
       <key>id</key>
       <value>fm_radio</value>
     </param>
@@ -53,16 +53,8 @@
       <value>0</value>
     </param>
     <param>
-      <key>qt_qss_theme</key>
-      <value></value>
-    </param>
-    <param>
       <key>realtime_scheduling</key>
       <value></value>
-    </param>
-    <param>
-      <key>run_command</key>
-      <value>{python} -u {filename}</value>
     </param>
     <param>
       <key>run_options</key>
@@ -120,7 +112,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(320, 531)</value>
+      <value>(368, 539)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -357,7 +349,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>2.5e3</value>
+      <value>2.83e3</value>
     </param>
   </block>
   <block>
@@ -1044,7 +1036,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(504, 427)</value>
+      <value>(488, 427)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -2493,7 +2485,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(184, 2475)</value>
+      <value>(40, 2475)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -2517,7 +2509,7 @@
     </param>
     <param>
       <key>taps</key>
-      <value>firdes.low_pass(2500,baseband_rate,rds_bandwidth,0.5e3,firdes.WIN_HAMMING)</value>
+      <value>firdes.low_pass(2500,baseband_rate,rds_bandwidth,1e3,firdes.WIN_HAMMING)</value>
     </param>
     <param>
       <key>type</key>
@@ -2677,7 +2669,7 @@
     </param>
     <param>
       <key>cutoff_freq</key>
-      <value>60e3</value>
+      <value>75e3</value>
     </param>
     <param>
       <key>decim</key>
@@ -2693,7 +2685,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(320, 387)</value>
+      <value>(296, 387)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -2902,7 +2894,7 @@
     </param>
     <param>
       <key>cutoff_freq</key>
-      <value>59e3</value>
+      <value>60e3</value>
     </param>
     <param>
       <key>decim</key>
@@ -2950,7 +2942,7 @@
     </param>
     <param>
       <key>width</key>
-      <value>0.5e3</value>
+      <value>1e3</value>
     </param>
     <param>
       <key>win</key>
@@ -3689,7 +3681,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(320, 307)</value>
+      <value>(344, 251)</value>
     </param>
     <param>
       <key>gui_hint</key>
@@ -6620,7 +6612,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(432, 2459)</value>
+      <value>(424, 2427)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -6628,7 +6620,7 @@
     </param>
     <param>
       <key>gain</key>
-      <value>1</value>
+      <value>2</value>
     </param>
     <param>
       <key>id</key>
@@ -6648,7 +6640,7 @@
     </param>
     <param>
       <key>ntaps</key>
-      <value>10</value>
+      <value>16</value>
     </param>
     <param>
       <key>samp_rate</key>
@@ -6683,7 +6675,7 @@
     </param>
     <param>
       <key>corr0</key>
-      <value>9</value>
+      <value>14</value>
     </param>
     <param>
       <key>freq0</key>
@@ -8159,7 +8151,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(0, 2483)</value>
+      <value>(48, 2355)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -8518,7 +8510,7 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>1</value>
+      <value>0</value>
     </param>
     <param>
       <key>_coordinate</key>
